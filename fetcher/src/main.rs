@@ -1,46 +1,38 @@
-use clap::Parser;
-use dotenv::dotenv;
-mod decode;
+mod types;
 
+mod db;
+mod fetch;
+use clap::Parser;
+use fetch::{ConnectionPool, Pool};
+
+use dotenv::dotenv;
+
+// Fetch block type auto or range.
 #[derive(Parser)]
-enum FetcherType {
+pub enum FetchType {
     Auto,
     Range { start: i64, end: i64 },
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let beacon_url = read_env();
-    handle_fetching(FetcherType::parse(), beacon_url).await?;
-    Ok(())
-}
-fn read_env() -> String {
     dotenv().ok();
-    std::env::var("BEACON_CHAIN_URL").expect("BEACON_CHAIN_URL must be set in env file")
-}
-
-async fn handle_fetching(fethtype: FetcherType, beacon_url: String) -> Result<(), reqwest::Error> {
-    match fethtype {
-        FetcherType::Auto => auto_fetch(beacon_url).await,
-        FetcherType::Range { start, end } => range_fetch(start, end, beacon_url).await,
-    }
-}
-
-async fn auto_fetch(beacon_url: String) -> Result<(), reqwest::Error> {
-    let current_epoch = reqwest::get(format!("{:}/epoch/finalized", beacon_url))
-        .await?
-        .json::<decode::Epoch>()
-        .await?;
-    range_fetch(
-        current_epoch.data.epoch - 5,
-        current_epoch.data.epoch,
-        beacon_url,
+    let fetch_type = FetchType::parse();
+    let fetch = ConnectionPool::new(
+        read_env("BEACON_CHAIN_URL"),
+        read_env("POSTGRES_URL"),
+        fetch_type,
     )
-    .await?;
-    println!("{:?}", current_epoch);
+    .await;
+
+    fetch.handle_fetching().await?;
+
     Ok(())
 }
 
-async fn range_fetch(start: i64, end: i64, beacon_url: String) -> Result<(), reqwest::Error> {
-    Ok(())
+/// Read env from dot env file.
+/// Parameters:
+/// - `env_var`: Name of env variable from dot env file.
+fn read_env(env_var: &str) -> String {
+    std::env::var(env_var).expect("ENV VARIABLE must be set.")
 }
