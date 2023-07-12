@@ -19,8 +19,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
     let fetch_type = FetchType::parse();
     let fetch = ConnectionPool::new(
-        read_env("BEACON_CHAIN_URL"),
         read_env("POSTGRES_URL"),
+        read_env("BEACON_CHAIN_URL"),
         fetch_type,
     )
     .await;
