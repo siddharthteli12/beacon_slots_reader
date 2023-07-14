@@ -1,6 +1,5 @@
-use sqlx::Postgres;
-
 use crate::{types::Slots, Pool};
+use sqlx::{Postgres, Row};
 
 /// Insert slots to db.
 /// - `pool`: Db connection pool to dump data from api.
@@ -55,4 +54,13 @@ pub async fn insert_slot_to_db(pool: Pool<Postgres>, slots: Slots) -> Result<(),
             .await?;
     }
     Ok(())
+}
+
+pub async fn get_slot_participation(pool: Pool<Postgres>) -> Result<Vec<(i64, f64)>, sqlx::Error> {
+    let query = "SELECT slot, syncaggregate_participation from slots";
+
+    let result = sqlx::query(query).fetch_all(&pool).await?;
+    let slot_participation: Vec<(i64, f64)> =
+        result.iter().map(|row| (row.get(0), row.get(1))).collect();
+    Ok(slot_participation)
 }

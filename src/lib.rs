@@ -3,6 +3,7 @@ pub use clap::Parser;
 pub mod db;
 use log::info;
 pub use sqlx::{Pool, Postgres};
+pub mod calculation;
 // Db pool & other urls.
 pub struct ConnectionPool {
     db_pool: Pool<Postgres>,
