@@ -2,6 +2,7 @@ use crate::{types::Slots, Pool};
 use sqlx::{Postgres, Row};
 
 /// Insert slots to db.
+/// Parameters:
 /// - `pool`: Db connection pool to dump data from api.
 /// - `slots`: Slots per epoch.
 pub async fn insert_slot_to_db(pool: Pool<Postgres>, slots: Slots) -> Result<(), sqlx::Error> {
@@ -56,6 +57,9 @@ pub async fn insert_slot_to_db(pool: Pool<Postgres>, slots: Slots) -> Result<(),
     Ok(())
 }
 
+/// Get participation rate across given slots.
+/// Parameters:
+/// - `pool`: Db connection pool to get data from.
 pub async fn get_slot_participation(pool: Pool<Postgres>) -> Result<Vec<(i64, f64)>, sqlx::Error> {
     let query = "SELECT slot, syncaggregate_participation from slots";
 
