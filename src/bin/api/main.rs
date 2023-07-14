@@ -1,14 +1,9 @@
 use actix_web::{get, middleware::Logger, web, App, HttpResponse, HttpServer, Responder};
 use dotenv::dotenv;
-use indexer::{calculation, db::get_slot_participation};
+use indexer::{db::get_slot_participation, read_env};
 use serde::Serialize;
+mod utility;
 
-#[derive(Serialize)]
-struct Response {
-    start: i64,
-    average_participation: f64,
-    end: i64,
-}
 /// Returns latest finalized block.
 #[get("/current_block")]
 async fn current_block() -> impl Responder {
@@ -20,19 +15,13 @@ async fn current_block() -> impl Responder {
 #[get("/attestation_percentage")]
 async fn attestation_percentage() -> impl Responder {
     dotenv().ok();
-    let db_url = std::env::var("POSTGRES_URL").expect("ENV VARIABLE must be set.");
-    let db_pool = sqlx::postgres::PgPool::connect(&db_url)
+    let db_pool = sqlx::postgres::PgPool::connect(&read_env("POSTGRES_URL"))
         .await
         .expect("Issue connecting with db");
 
     let slot_participation = get_slot_participation(db_pool).await.unwrap();
-    let result = calculation::calculate(slot_participation);
-    let res = Response {
-        start: result.0,
-        average_participation: result.2,
-        end: result.1,
-    };
-    web::Json(res)
+    let result = utility::calculate(slot_participation);
+    web::Json(result)
 }
 
 /// Participation rate of a given validator in attestation call.

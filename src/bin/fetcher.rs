@@ -1,5 +1,5 @@
 use dotenv::dotenv;
-use indexer::{ConnectionPool, FetchType, Parser};
+use indexer::{read_env, ConnectionPool, FetchType, Parser};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init();
@@ -15,11 +15,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     fetch.handle_fetching().await?;
 
     Ok(())
-}
-
-/// Read env from dot env file.
-/// Parameters:
-/// - `env_var`: Name of env variable from dot env file.
-fn read_env(env_var: &str) -> String {
-    std::env::var(env_var).expect("ENV VARIABLE must be set.")
 }

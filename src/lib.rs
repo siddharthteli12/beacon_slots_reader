@@ -3,7 +3,6 @@ pub use clap::Parser;
 pub mod db;
 use log::info;
 pub use sqlx::{Pool, Postgres};
-pub mod calculation;
 // Db pool & other urls.
 pub struct ConnectionPool {
     db_pool: Pool<Postgres>,
@@ -92,4 +91,11 @@ impl ConnectionPool {
 pub async fn get_slots(url: &str) -> Result<types::Slots, reqwest::Error> {
     let slots = reqwest::get(url).await?.json::<types::Slots>().await?;
     Ok(slots)
+}
+
+/// Read env from dot env file.
+/// Parameters:
+/// - `env_var`: Name of env variable from dot env file.
+pub fn read_env(env_var: &str) -> String {
+    std::env::var(env_var).expect("ENV VARIABLE must be set.")
 }
