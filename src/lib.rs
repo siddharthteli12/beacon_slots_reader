@@ -1,11 +1,20 @@
-use crate::{db, types, FetchType};
+pub mod types;
+pub use clap::Parser;
+pub mod db;
+use log::info;
 pub use sqlx::{Pool, Postgres};
-
 // Db pool & other urls.
 pub struct ConnectionPool {
     db_pool: Pool<Postgres>,
     beacon_url: String,
     fetch_type: FetchType,
+}
+
+// Fetch block type auto or range.
+#[derive(Parser)]
+pub enum FetchType {
+    Auto,
+    Range { start: i64, end: i64 },
 }
 
 impl ConnectionPool {
@@ -19,7 +28,7 @@ impl ConnectionPool {
             .await
             .expect("Issue connecting with db");
 
-        sqlx::migrate!("../migrations")
+        sqlx::migrate!("./migrations")
             .run(&db_pool)
             .await
             .expect("Issue running migration");
@@ -50,9 +59,12 @@ impl ConnectionPool {
             .await?
             .json::<types::Epoch>()
             .await?;
-
         Self::range_fetch(self, current_epoch.data.epoch - 5, current_epoch.data.epoch).await?;
-        println!("{:?}", current_epoch);
+        info!(
+            "Fetching slots, from {:} to {:}",
+            current_epoch.data.epoch - 5,
+            current_epoch.data.epoch
+        );
         Ok(())
     }
 

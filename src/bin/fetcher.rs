@@ -1,21 +1,8 @@
-mod types;
-
-mod db;
-mod fetch;
-use clap::Parser;
-use fetch::{ConnectionPool, Pool};
-
 use dotenv::dotenv;
-
-// Fetch block type auto or range.
-#[derive(Parser)]
-pub enum FetchType {
-    Auto,
-    Range { start: i64, end: i64 },
-}
-
+use indexer::{ConnectionPool, FetchType, Parser};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    env_logger::init();
     dotenv().ok();
     let fetch_type = FetchType::parse();
     let fetch = ConnectionPool::new(
