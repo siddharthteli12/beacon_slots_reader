@@ -99,3 +99,26 @@ pub async fn get_slots(url: &str) -> Result<types::Slots, reqwest::Error> {
 pub fn read_env(env_var: &str) -> String {
     std::env::var(env_var).expect("ENV VARIABLE must be set.")
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_env() {
+        let key = "TEST_KEY";
+        std::env::set_var(key, "Foo");
+        assert_eq!(std::env::var("TEST_KEY").unwrap(), read_env("TEST_KEY"));
+    }
+
+    #[tokio::test]
+    async fn test_get_slots() {
+        assert_eq!(
+            get_slots("https://beaconcha.in/api/v1/epoch/214829/slots")
+                .await
+                .unwrap()
+                .data[0]
+                .epoch,
+            214829
+        );
+    }
+}
