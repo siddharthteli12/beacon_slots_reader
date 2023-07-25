@@ -1,5 +1,6 @@
-# Ethereum Indexer
+# Beacon chain slots reader.
 
+### Fetches slots from beacon node & dumbs it to postgres db. API cal. average attestation percent over db slots & exposes it.
 - There are two bin files.
     - Fetcher
     - Rest Api
